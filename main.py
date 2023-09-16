@@ -18,14 +18,14 @@ def get_url ():
         file.write(str(soup))
 
 def get_links():
-    with open('page_data.json', 'r', encoding='utf-8') as file:
+    with open('page_data.json', 'r', encoding='utf-8')as file:
         data = file.read()
     soup = BeautifulSoup(data, "lxml")  
     href_list = [] 
     for link_wr in soup.find_all(class_='link_wr'):
         for link in link_wr.find_all('a'):
             href = link.get('href')
-            if href and href not in visited_links:
+            if href not in visited_links:
                 visited_links.add(href)
                 href_list.append(href)
     return href_list
