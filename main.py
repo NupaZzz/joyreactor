@@ -6,8 +6,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 import asyncio
 import json
-from config import token
-
+from config.token import TOKEN
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
@@ -47,7 +46,7 @@ async def command_start_handler(message: Message):
         await asyncio.sleep(10)
 
 async def main():
-    bot = Bot(token.TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
