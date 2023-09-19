@@ -53,10 +53,20 @@ def get_links(user_id):
 
     return new_links
 
+@dp.message(CommandStart())
+async def joy_start(message: Message):
+    await message.answer(f"Добро пожаловать на joyreactor в телеграмме {message.from_user.full_name}."
+                         "\nЧтобы начать, вам нужно задать URL в вашем привычном формате, для этого введите /joy_url с выбранным значением: m, old, default. Пример: /joy_url m "
+                         "\nЗатем введите команду /joy, чтобы начать сбор данных. В последствии URL можно будет менять на ходу.")
+
 @dp.message(Command('joy_url'))
 async def joy_url_start(message: types.Message):
     user_id = str(message.from_user.id)
-    url_type = message.text.split()[1]
+    command_parts = message.text.split()
+    if len(command_parts) < 2:
+        await message.answer("Пожалуйста, введите /joy_url с выбранным значением: m, old, default. Пример: /joy_url m")
+        return
+    url_type = command_parts[1]
     if url_type == 'default':
         configs[user_id] = variables.url
     elif url_type == 'm':
