@@ -1,4 +1,4 @@
-TOKEN = '1429234370:AAGbRkid7gFu-aek91zkxGuv_cmvnpoLwOE'
+TOKEN = '*'
 
 url = "https://reactor.cc"
 url_new = "https://reactor.cc/all"
