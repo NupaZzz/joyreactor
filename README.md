@@ -1,6 +1,6 @@
 # The project is currently under development
 
-# Parser Joyreactor for Telegram with Flexible User Settings
+# Joyreactor parser for Telegram with Flexible User Settings
 
 This parser is designed to extract and deliver content to Telegram users with flexible settings.
 
