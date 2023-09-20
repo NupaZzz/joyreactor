@@ -1,5 +1,6 @@
 import json
 
+
 def save_configs(user_configs):
     with open('user_configs.json', 'w') as f:
         json.dump(user_configs, f, indent=4)
