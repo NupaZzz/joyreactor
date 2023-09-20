@@ -68,16 +68,33 @@ async def joy_url_start(message: types.Message):
         return
     url_type = command_parts[1]
     if url_type == 'default':
-        configs[user_id] = variables.url
+        configs[user_id + "_url"] = variables.url
     elif url_type == 'm':
-        configs[user_id] = variables.url_m
+        configs[user_id + "_url"] = variables.url_m
     elif url_type == 'old':
-        configs[user_id] = variables.url_old
+        configs[user_id + "_url"] = variables.url_old
     else:
         await message.answer("Некорректный URL")
         return
     user_configs.save_configs(configs)
-    await message.answer(f"Установлен URL: {configs[user_id]}")
+    await message.answer(f"Установлен URL: {configs[user_id + '_url']}")
+
+@dp.message(Command('news_type'))
+async def news_type_start(message: types.Message):
+    user_id = str(message.from_user.id)
+    command_parts = message.text.split()
+    if len(command_parts) < 2:
+        await message.answer("Пожалуйста, введите /news_type с выбранным типом новостей. Пример: /news_type best")
+        return
+    news_type = command_parts[1]
+    if news_type == 'лучшее' or news_type == 'best':
+        configs[user_id + "_chapter"] = variables.url_best
+    elif news_type == 'хорошее' or news_type == 'good':
+        configs[user_id + "_chapter"] = variables.url
+    elif news_type == 'новое' or news_type == 'new':
+        configs[user_id + "_chapter"] = variables.url_new
+    user_configs.save_configs(configs)
+    await message.answer(f"Установлен тип новостей: {configs[user_id + '_chapter']}")
 
 @dp.message(Command('joy'))
 async def joy_start(message: types.Message):
@@ -98,7 +115,7 @@ async def joy_start(message: types.Message):
             break
 
 async def main():
-    bot = Bot(variables.TOKEN, parse_mode=ParseMode.HTML)
+    bot = Bot(token=variables.TOKEN, parse_mode=ParseMode.HTML)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
