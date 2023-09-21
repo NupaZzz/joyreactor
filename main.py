@@ -5,9 +5,7 @@ from aiogram.types import Message
 from bs4 import BeautifulSoup
 import json
 import asyncio
-import aiofiles
 import aiohttp
-import requests
 import logging
 from variables import variables
 from modules import user_configs
@@ -110,7 +108,7 @@ async def joy_start(message: types.Message):
         links = get_links(user_id)
         if links:
             for link in links:
-                await message.answer(f"{variables.url}{link}")
+                await message.answer(f"{configs[user_id]['url']}{link}")
                 await asyncio.sleep(5)
         await asyncio.sleep(10)
         if not running:
