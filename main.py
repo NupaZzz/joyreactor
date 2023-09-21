@@ -17,7 +17,7 @@ visited_links = set()
 configs = user_configs.load_configs()
 
 def get_links(user_id):
-    with open(f'page_data.json', 'r', encoding='utf-8') as file:
+    with open(f'page_data_{user_id}.json', 'r', encoding='utf-8') as file:
         data = file.read()
     soup = BeautifulSoup(data, "html.parser")
     href_list = []
@@ -59,17 +59,19 @@ async def joy_url_start(message: types.Message):
         await message.answer("Пожалуйста, введите /joy_url с выбранным значением: m, old, default. Пример: /joy_url m")
         return
     url_type = command_parts[1]
+    if not user_id in configs:
+        configs[user_id] = {}
     if url_type == 'default':
-        configs[user_id] = variables.url
+        configs[user_id]['url'] = variables.url
     elif url_type == 'm':
-        configs[user_id] = variables.url_m
+        configs[user_id]['url'] = variables.url_m
     elif url_type == 'old':
-        configs[user_id] = variables.url_old
+        configs[user_id]['url'] = variables.url_old
     else:
         await message.answer("Некорректный URL")
         return
     user_configs.save_configs(configs)
-    await message.answer(f"Установлен URL: {configs[user_id]}")
+    await message.answer(f"Установлен URL: {configs[user_id]['url']}")
 
 @dp.message(Command('news_type'))
 async def news_type_start(message: types.Message):
@@ -79,14 +81,16 @@ async def news_type_start(message: types.Message):
         await message.answer("Пожалуйста, введите /news_type с выбранным типом новостей. Пример: /news_type best")
         return
     news_type = command_parts[1]
+    if not user_id in configs:
+        configs[user_id] = {}
     if news_type == 'лучшее' or news_type == 'best':
-        configs["chapter"] = variables.url_best
+        configs[user_id]["chapter"] = variables.url_best
     elif news_type == 'хорошее' or news_type == 'good':
-        configs["chapter"] = variables.url
+        configs[user_id]["chapter"] = variables.url
     elif news_type == 'новое' or news_type == 'new':
-        configs["chapter"] = variables.url_new
+        configs[user_id]["chapter"] = variables.url_new
     user_configs.save_configs(configs)
-    await message.answer(f"Установлен тип новостей: {configs['chapter']}")
+    await message.answer(f"Установлен тип новостей: {configs[user_id]['chapter']}")
 
 @dp.message(Command('joy'))
 async def joy_start(message: types.Message):
@@ -95,13 +99,14 @@ async def joy_start(message: types.Message):
         await message.answer("Пожалуйста, выберите URL с помощью комманды /joy_url со следующими из значений: m, old, default. Пример: /joy_url m")
         return
     running = True
-    def get_url():
-        response = requests.get(url=configs["chapter"], headers=variables.headers)
-        soup = BeautifulSoup(response.text, "html.parser")
-        with open(f'page_data.json', 'w', encoding="utf-8") as file:
-            file.write(str(soup))
+    async def get_url():
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url=configs[user_id]["chapter"], headers=variables.headers) as response:
+                soup = BeautifulSoup(await response.text(), "html.parser")
+                with open(f'page_data_{user_id}.json', 'w', encoding="utf-8") as file:
+                    file.write(str(soup))
     while running:
-        get_url()
+        await get_url()
         links = get_links(user_id)
         if links:
             for link in links:
