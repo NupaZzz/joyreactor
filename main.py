@@ -13,6 +13,7 @@ from modules import user_configs
 dp=Dispatcher()
 visited_links = set()
 configs = user_configs.load_configs()
+running = {}
 
 def get_links(user_id):
     with open(f'page_data_{user_id}.json', 'r', encoding='utf-8') as file:
@@ -44,13 +45,13 @@ def get_links(user_id):
     return new_links
 
 @dp.message(CommandStart())
-async def joy_start(message: Message):
+async def joy_info(message: Message):
     await message.answer(f"Добро пожаловать на joyreactor в телеграмме {message.from_user.full_name}."
                          "\nЧтобы начать, вам нужно задать URL в вашем привычном формате, для этого введите /joy_url с выбранным значением: m, old, default. Пример: /joy_url m "
                          "\nЗатем введите команду /joy, чтобы начать сбор данных. В последствии URL можно будет менять на ходу.")
 
 @dp.message(Command('joy_url'))
-async def joy_url_start(message: types.Message):
+async def joy_url(message: types.Message):
     user_id = str(message.from_user.id)
     command_parts = message.text.split()
     if len(command_parts) < 2:
@@ -72,7 +73,7 @@ async def joy_url_start(message: types.Message):
     await message.answer(f"Установлен URL: {configs[user_id]['url']}")
 
 @dp.message(Command('news_type'))
-async def news_type_start(message: types.Message):
+async def news_type(message: types.Message):
     user_id = str(message.from_user.id)
     command_parts = message.text.split()
     if len(command_parts) < 2:
@@ -96,14 +97,15 @@ async def joy_start(message: types.Message):
     if user_id not in configs and "chapter" not in configs:
         await message.answer("Пожалуйста, выберите URL с помощью комманды /joy_url со следующими из значений: m, old, default. Пример: /joy_url m")
         return
-    running = True
+    await message.answer ("Парсинг активирован")
+    running[user_id] = True
     async def get_url():
         async with aiohttp.ClientSession() as session:
             async with session.get(url=configs[user_id]["chapter"], headers=variables.headers) as response:
                 soup = BeautifulSoup(await response.text(), "html.parser")
                 with open(f'page_data_{user_id}.json', 'w', encoding="utf-8") as file:
                     file.write(str(soup))
-    while running:
+    while running[user_id]:
         await get_url()
         links = get_links(user_id)
         if links:
@@ -111,8 +113,17 @@ async def joy_start(message: types.Message):
                 await message.answer(f"{configs[user_id]['url']}{link}")
                 await asyncio.sleep(5)
         await asyncio.sleep(10)
-        if not running:
+        if not running[user_id]:
             break
+
+@dp.message(Command('stop'))
+async def stop_parsing(message: types.Message):
+    user_id = str(message.from_user.id)
+    if user_id in running:
+        running[user_id] = False
+        await message.answer("Парсинг остановлен")
+    else:
+        await message.answer("Парсинг еще не был запущен")
 
 async def main():
     bot = Bot(token=variables.TOKEN, parse_mode=ParseMode.HTML)
