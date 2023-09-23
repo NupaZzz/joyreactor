@@ -9,40 +9,12 @@ import aiohttp
 import logging
 from variables import variables
 from modules import user_configs
+from modules.get_links import get_links
+from modules.get_url import get_url
 
 dp=Dispatcher()
-visited_links = set()
 configs = user_configs.load_configs()
 running = {}
-
-def get_links(user_id):
-    with open(f'page_data_{user_id}.json', 'r', encoding='utf-8') as file:
-        data = file.read()
-    soup = BeautifulSoup(data, "html.parser")
-    href_list = []
-    for link_wr in soup.find_all(class_='link_wr'):
-        for link in link_wr.find_all('a'):
-            href = link.get('href')
-            if href not in visited_links:
-                visited_links.add(href)
-                href_list.append(href)
-    
-    # Загрузка уже сохраненных ссылок
-    try:
-        with open(f'{user_id}_links.json', 'r', encoding='utf-8') as file:
-            saved_links = json.load(file)
-    except FileNotFoundError:
-        saved_links = []
-
-    # Добавление новых ссылок, если они еще не сохранены
-    new_links = [link for link in href_list if link not in saved_links]
-    saved_links.extend(new_links)
-
-    # Сохранение обновленного списка ссылок
-    with open(f'{user_id}_links.json', 'w', encoding='utf-8') as file:
-        json.dump(saved_links, file)
-
-    return new_links
 
 @dp.message(CommandStart())
 async def joy_info(message: Message):
@@ -99,14 +71,8 @@ async def joy_start(message: types.Message):
         return
     await message.answer ("Парсинг активирован")
     running[user_id] = True
-    async def get_url():
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=configs[user_id]["chapter"], headers=variables.headers) as response:
-                soup = BeautifulSoup(await response.text(), "html.parser")
-                with open(f'page_data_{user_id}.json', 'w', encoding="utf-8") as file:
-                    file.write(str(soup))
     while running[user_id]:
-        await get_url()
+        await get_url(user_id, configs[user_id]["chapter"], variables.headers)
         links = get_links(user_id)
         if links:
             for link in links:
