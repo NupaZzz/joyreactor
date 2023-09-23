@@ -2,10 +2,7 @@ from aiogram import Bot, types, Dispatcher, F
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message
-from bs4 import BeautifulSoup
-import json
 import asyncio
-import aiohttp
 import logging
 from variables import variables
 from modules import user_configs
