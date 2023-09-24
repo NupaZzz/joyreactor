@@ -66,6 +66,9 @@ async def joy_start(message: types.Message):
     if user_id not in configs and "chapter" not in configs:
         await message.answer("Пожалуйста, выберите URL с помощью комманды /joy_url со следующими из значений: m, old, default. Пример: /joy_url m")
         return
+    if 'visible_tags' not in configs[user_id]:
+        await message.answer("Пожалуйста, установите видимость тегов с помощью команды /visible_tags.")
+        return
     await message.answer ("Парсинг активирован")
     running[user_id] = True
     while running[user_id]:
@@ -73,8 +76,14 @@ async def joy_start(message: types.Message):
         links = get_links(user_id)
         if links:
             for link in links:
-                await message.answer(f"{configs[user_id]['url']}{link}")
-                await asyncio.sleep(5)
+                if configs[user_id]['visible_tags'] == True:
+                    tags = links[link]['tags']
+                    await message.answer(f"{tags}\n{configs[user_id]['url']}{link}")
+                    await asyncio.sleep(5)
+                else:
+                    await message.answer(f"{configs[user_id]['url']}{link}")
+                    await asyncio.sleep(5)
+
         await asyncio.sleep(10)
         if not running[user_id]:
             break
@@ -87,6 +96,18 @@ async def stop_parsing(message: types.Message):
         await message.answer("Парсинг остановлен")
     else:
         await message.answer("Парсинг еще не был запущен")
+
+@dp.message(Command('visible_tags'))
+async def visible_tags(message: types.Message):
+    user_id = str(message.from_user.id)
+    if not user_id in configs:
+        configs[user_id] = {}   
+    configs[user_id]['visible_tags'] = not configs[user_id].get('visible_tags', False)
+    user_configs.save_configs(configs)
+    if configs[user_id]['visible_tags'] == True:
+        await message.reply (f'Теперь вы будете видеть теги.')
+    else:
+        await message.reply (f'Теперь вы не будете видеть теги.')
 
 async def main():
     bot = Bot(token=variables.TOKEN, parse_mode=ParseMode.HTML)
